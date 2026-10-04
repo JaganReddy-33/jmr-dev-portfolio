@@ -2,7 +2,7 @@
 
 A full-stack, owner-managed portfolio: a 3D React front end and a Java Spring Boot REST API. Visitors browse projects, experience, skills and certificates and send messages; the owner logs in with a private key to add, edit and delete content without touching code.
 
-> **Live demo:** _add your Vercel URL_ · **API:** _add your Render/Railway URL_
+> **Live demo:** [Live Portfolio](https://jmr-dev-portfolio-gilt.vercel.app) · **API:** [API URL](https://jmr-dev-portfolio.onrender.com)
 
 <!-- Add 1-2 screenshots here: ![Home](docs/home.png) -->
 

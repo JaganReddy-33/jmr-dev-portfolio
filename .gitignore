@@ -1,0 +1,27 @@
+node_modules/
+dist/
+target/
+data/
+.env
+.env.local
+.DS_Store
+.idea/
+.vscode/
+
+# Backend ignores
+backend/target/
+backend/data/
+backend/*.log
+backend/.idea/
+backend/.project
+backend/.classpath
+
+# Frontend ignores
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
+frontend/.env
+
+# OS / IDE ignores
+.DS_Store
+.vscode/

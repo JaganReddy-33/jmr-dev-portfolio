@@ -1,25 +1,26 @@
 package com.jmr.portfolio.security;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /** Requires the X-Admin-Key header for everything except public reads of /api/content. */
 @Component
 public class AdminKeyInterceptor implements HandlerInterceptor {
 
-    private static final Logger log = LoggerFactory.getLogger(AdminKeyInterceptor.class);
     private final byte[] adminKey;
 
-    public AdminKeyInterceptor(@Value("${app.admin-key}") String adminKey) {
+    public AdminKeyInterceptor(@Value("${app.admin-key:}") String adminKey) {
+        if (adminKey == null || adminKey.length() < 8) {
+            throw new IllegalStateException("Set the ADMIN_KEY environment variable (at least 8 characters).");
+        }
         this.adminKey = adminKey.getBytes(StandardCharsets.UTF_8);
-        if ("change-me".equals(adminKey)) log.warn("ADMIN_KEY is not set: using the insecure default. Set ADMIN_KEY before deploying!");
     }
 
     @Override

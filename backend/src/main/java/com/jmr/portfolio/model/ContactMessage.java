@@ -1,7 +1,13 @@
 package com.jmr.portfolio.model;
 
-import jakarta.persistence.*;
 import java.time.Instant;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "contact_messages")
@@ -15,6 +21,8 @@ public class ContactMessage {
     @Column(length = 150) private String subject;
     @Column(nullable = false, length = 3000) private String message;
     @Column(nullable = false) private Instant createdAt = Instant.now();
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean seen;
 
     protected ContactMessage() { }
 
@@ -28,4 +36,6 @@ public class ContactMessage {
     public String getSubject() { return subject; }
     public String getMessage() { return message; }
     public Instant getCreatedAt() { return createdAt; }
+    public boolean isSeen() { return seen; }
+    public void setSeen(boolean seen) { this.seen = seen; }
 }

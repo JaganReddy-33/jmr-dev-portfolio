@@ -5,9 +5,11 @@ import useReveal from './hooks/useReveal';
 import ThreeBackground from './components/layout/ThreeBackground';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
+import FloatingInbox from './components/ui/FloatingInbox';
 import ResumeModal from './components/modals/ResumeModal';
 import OwnerLoginModal from './components/modals/OwnerLoginModal';
 import Home from './pages/Home';
+
 
 export default function App() {
   const [resumeOpen, setResumeOpen] = useState(false);
@@ -24,6 +26,7 @@ export default function App() {
         <Footer onLogin={() => setLoginOpen(true)} />
         <ResumeModal open={resumeOpen} onClose={() => setResumeOpen(false)} />
         <OwnerLoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
+        <FloatingInbox />
       </DataProvider>
     </OwnerProvider>
   );

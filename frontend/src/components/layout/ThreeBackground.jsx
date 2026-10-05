@@ -1,33 +1,56 @@
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
-/** Flowing particle-wave terrain, stars and wire shards. Reacts to mouse, scroll and light/dark theme. */
+// The wave is animated in the vertex shader (GPU), so the CPU does almost nothing per frame.
+const VERT = `
+uniform float uTime; uniform float uSize; uniform float uScale;
+attribute vec3 aColor; varying vec3 vColor;
+void main() {
+  vec3 p = position;
+  p.y = sin(p.x * 0.32 + uTime * 0.9) * 0.7 + cos(p.z * 0.38 + uTime * 0.7) * 0.7 + sin((p.x + p.z) * 0.18 + uTime * 0.5) * 0.6;
+  vec4 mv = modelViewMatrix * vec4(p, 1.0);
+  gl_PointSize = max(uSize * uScale / -mv.z, 1.5);
+  gl_Position = projectionMatrix * mv;
+  vColor = aColor;
+}`;
+const FRAG = `
+uniform float uOpacity; varying vec3 vColor;
+void main() {
+  float d = length(gl_PointCoord - 0.5);
+  if (d > 0.5) discard;
+  gl_FragColor = vec4(vColor, smoothstep(0.5, 0.0, d) * uOpacity);
+}`;
+
 export default function ThreeBackground() {
   const ref = useRef(null);
 
   useEffect(() => {
     let renderer;
-    try { renderer = new THREE.WebGLRenderer({ canvas: ref.current, alpha: true, antialias: true }); } catch { return undefined; }
+    try { renderer = new THREE.WebGLRenderer({ canvas: ref.current, alpha: true, antialias: false, powerPreference: 'low-power' }); } catch { return undefined; }
+    const coarse = matchMedia('(pointer: coarse)').matches || innerWidth < 700;
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(55, 1, 0.1, 200);
-    const small = innerWidth < 700, cols = small ? 55 : 100, rows = small ? 40 : 70, N = cols * rows;
+
+    const cols = coarse ? 45 : 90, rows = coarse ? 32 : 62, step = coarse ? 0.75 : 0.55, N = cols * rows;
     const pos = new Float32Array(N * 3), col = new Float32Array(N * 3);
     const c1 = new THREE.Color(0x7c5cff), c2 = new THREE.Color(0x00e0c6), c3 = new THREE.Color(0xff5ca8);
     for (let i = 0; i < cols; i++) {
       const t = i / cols, cc = t < 0.5 ? c1.clone().lerp(c2, t * 2) : c2.clone().lerp(c3, (t - 0.5) * 2);
       for (let j = 0; j < rows; j++) {
         const k = (i * rows + j) * 3;
-        pos[k] = (i - cols / 2) * 0.55; pos[k + 2] = (j - rows / 2) * 0.55 - 6;
+        pos[k] = (i - cols / 2) * step; pos[k + 2] = (j - rows / 2) * step - 6;
         col[k] = cc.r; col[k + 1] = cc.g; col[k + 2] = cc.b;
       }
     }
     const waveGeo = new THREE.BufferGeometry();
     waveGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    waveGeo.setAttribute('color', new THREE.BufferAttribute(col, 3));
-    const waveMat = new THREE.PointsMaterial({ size: 0.075, vertexColors: true, transparent: true, opacity: 0.7, depthWrite: false, blending: THREE.AdditiveBlending });
-    const wave = new THREE.Points(waveGeo, waveMat); wave.position.y = -5; scene.add(wave);
+    waveGeo.setAttribute('aColor', new THREE.BufferAttribute(col, 3));
+    const uniforms = { uTime: { value: 0 }, uSize: { value: 0.075 }, uScale: { value: 800 }, uOpacity: { value: 0.7 } };
+    const waveMat = new THREE.ShaderMaterial({ uniforms, vertexShader: VERT, fragmentShader: FRAG, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
+    const wave = new THREE.Points(waveGeo, waveMat); wave.position.y = -5; wave.frustumCulled = false; scene.add(wave);
 
-    const sp = new Float32Array(900);
-    for (let i = 0; i < 900; i++) sp[i] = (Math.random() - 0.5) * (i % 3 === 1 ? 30 : 90);
+    const count = coarse ? 300 : 900, sp = new Float32Array(count);
+    for (let i = 0; i < count; i++) sp[i] = (Math.random() - 0.5) * (i % 3 === 1 ? 30 : 90);
     const starGeo = new THREE.BufferGeometry(); starGeo.setAttribute('position', new THREE.BufferAttribute(sp, 3));
     const starMat = new THREE.PointsMaterial({ size: 0.06, color: 0xb9b0ff, transparent: true, opacity: 0.6 });
     const stars = new THREE.Points(starGeo, starMat); stars.position.y = 6; scene.add(stars);
@@ -38,30 +61,41 @@ export default function ThreeBackground() {
       m.position.set(x, y, z); scene.add(m); return m;
     });
 
+    // On phones the address bar changes innerHeight while scrolling. Ignore height-only resizes so the canvas never re-allocates.
+    let lastW = 0;
     const resize = () => {
-      renderer.setSize(innerWidth, innerHeight); renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-      camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+      const w = innerWidth, h = innerHeight;
+      if (coarse && w === lastW) return;
+      lastW = w;
+      const pr = Math.min(devicePixelRatio, coarse ? 1.25 : 1.5);
+      renderer.setPixelRatio(pr); renderer.setSize(w, h, false);
+      camera.aspect = w / h; camera.updateProjectionMatrix();
+      uniforms.uScale.value = (h * pr) / 2 / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
     };
-    let mx = 0, my = 0, sy = 0, wasLight = false, raf;
+    let mx = 0, my = 0, sy = 0, wasLight = null, frame = 0, raf;
     const onMove = (e) => { mx = e.clientX / innerWidth - 0.5; my = e.clientY / innerHeight - 0.5; };
     const onScroll = () => { sy = scrollY; };
-    resize(); addEventListener('resize', resize); addEventListener('mousemove', onMove); addEventListener('scroll', onScroll);
-    const isLight = () => document.documentElement.dataset.theme ? document.documentElement.dataset.theme === 'light' : matchMedia('(prefers-color-scheme: light)').matches;
+    resize();
+    addEventListener('resize', resize); addEventListener('mousemove', onMove, { passive: true }); addEventListener('scroll', onScroll, { passive: true });
+    const isLight = () => (document.documentElement.dataset.theme ? document.documentElement.dataset.theme === 'light' : matchMedia('(prefers-color-scheme: light)').matches);
 
     const loop = (ms) => {
+      raf = requestAnimationFrame(loop);
+      if (document.hidden) return;
+      if (reduce && frame > 0) return;
+      if (coarse && (frame++ & 1)) return; // 30fps on phones
+      if (!coarse) frame++;
       const t = ms / 1000, light = isLight();
-      if (light !== wasLight) { wasLight = light; waveMat.blending = light ? THREE.NormalBlending : THREE.AdditiveBlending; waveMat.opacity = light ? 0.55 : 0.7; waveMat.needsUpdate = true; }
-      const p = waveGeo.attributes.position.array;
-      for (let k = 0; k < p.length; k += 3) {
-        const x = p[k], z = p[k + 2];
-        p[k + 1] = Math.sin(x * 0.32 + t * 0.9) * 0.7 + Math.cos(z * 0.38 + t * 0.7) * 0.7 + Math.sin((x + z) * 0.18 + t * 0.5) * 0.6;
+      if (light !== wasLight) {
+        wasLight = light;
+        waveMat.blending = light ? THREE.NormalBlending : THREE.AdditiveBlending;
+        uniforms.uOpacity.value = light ? 0.55 : 0.7; waveMat.needsUpdate = true;
       }
-      waveGeo.attributes.position.needsUpdate = true;
+      uniforms.uTime.value = t;
       wave.rotation.y = mx * 0.25; stars.rotation.y = t * 0.01 + mx * 0.1;
       shards.forEach((s, i) => { s.rotation.x = t * 0.1 * (i + 1); s.rotation.y = t * 0.25; });
       camera.position.set(mx * 2, 4 - my * 1.5 - sy * 0.0015, 14); camera.lookAt(0, 0, -2);
       renderer.render(scene, camera);
-      raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
 

@@ -8,7 +8,7 @@ export default function Acts({ onEdit, onDel }) {
   if (!own) return null;
   const del = () => { if (sure) return onDel(); setSure(true); setTimeout(() => setSure(false), 2500); };
   return (
-    <div className="acts">
+    <div className="acts" onClick={(e) => e.stopPropagation()}>
       <button aria-label="Edit" onClick={onEdit}>✎ Edit</button>
       <button className={sure ? 'dng' : ''} aria-label="Delete" onClick={del}>{sure ? 'Sure?' : '🗑'}</button>
     </div>

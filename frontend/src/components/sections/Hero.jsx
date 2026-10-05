@@ -2,6 +2,7 @@ import photo from "../../assets/images/profile.jpg";
 import { useData } from "../../context/DataContext";
 import useTypewriter from "../../hooks/useTypewriter";
 import Counter from "../ui/Counter";
+import { SocialLinks } from '../ui/Icons';
 
 const ROLES = [
   "Java Full-Stack Developer",
@@ -60,6 +61,7 @@ export default function Hero({ onResume }) {
             Hire Me
           </a>
         </div>
+        <div style={{ marginTop: 18 }}><SocialLinks /></div>
         <div className="stats">
           <div>
             <b>

@@ -9,7 +9,7 @@ export default function ProjectForm({ init, onSave }) {
         <input required placeholder="Title" {...bind('title')} />
         <input placeholder="Tech (comma separated)" {...bind('tech')} />
       </div>
-      <textarea required rows="3" placeholder="Description" {...bind('desc')} />
+      <textarea required rows="6" placeholder={'Description: one point per line (or use •).\nThe first 2 points show on the card; all of them show in the popup.'} {...bind('desc')} />
       <div className="row">
         <input type="url" placeholder="Code link (GitHub)" {...bind('code')} />
         <input type="url" placeholder="Live link (optional)" {...bind('live')} />

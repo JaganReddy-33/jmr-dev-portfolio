@@ -4,5 +4,6 @@ data/
 .idea/
 .vscode/
 
+# Ignore local credentials
+src/main/resources/application-local.properties
 application-local.properties
-backend/src/main/resources/application-local.properties

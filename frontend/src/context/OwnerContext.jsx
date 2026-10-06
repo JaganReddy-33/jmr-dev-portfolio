@@ -8,11 +8,12 @@ export const useOwner = () => useContext(OwnerContext);
 export function OwnerProvider({ children }) {
   const [own, setOwn] = useState(!!adminKey.get());
   const login = async (key) => {
-    adminKey.set(key);
-    const r = await authApi.check();
-    if (r === false) { adminKey.set(''); return false; } // server reachable, wrong key
-    setOwn(true); return true; // right key, or server offline (local-only demo mode)
-  };
+  adminKey.set(key);
+  const r = await authApi.check();
+  if (r === true) { setOwn(true); return true; }
+  adminKey.set(''); // wrong key OR server unreachable: never enter owner mode without a verified key
+  return false;
+};
   const logout = () => { adminKey.set(''); setOwn(false); };
   return <OwnerContext.Provider value={{ own, login, logout }}>{children}</OwnerContext.Provider>;
 }

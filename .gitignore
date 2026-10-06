@@ -1,6 +1,4 @@
 # Sensitive & Configuration Files
-*.properties
-backend/src/main/resources/application.properties
 
 # Environment Files
 .env

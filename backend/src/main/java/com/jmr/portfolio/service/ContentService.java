@@ -41,7 +41,8 @@ public class ContentService {
         requireId(id);
         requireJsonObject(payload);
         String key = collection + ":" + id;
-        ContentDoc doc = repository.findById(key).orElseGet(() -> new ContentDoc(key, collection, System.nanoTime()));
+        ContentDoc doc = repository.findById(key)
+        .orElseGet(() -> new ContentDoc(key, collection, System.currentTimeMillis() * 1_000_000L));
         doc.setPayload(payload);
         repository.save(doc);
     }

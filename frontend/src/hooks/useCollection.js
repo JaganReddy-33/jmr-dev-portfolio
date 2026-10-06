@@ -1,68 +1,43 @@
-import { useEffect, useRef, useState } from 'react';
-import { contentApi } from '../services/api';
+import { useEffect, useState } from 'react';
+import { adminKey, contentApi } from '../services/api';
 import { store } from '../utils/storage';
-
 
 export default function useCollection(name, seed) {
   const [list, setList] = useState(() => {
     const cached = store.get('c_' + name);
-   
     return Array.isArray(cached) && cached.length > 0 ? cached : seed;
   });
 
-  const remote = useRef('off'); 
-
   useEffect(() => {
-    contentApi.list(name)
-      .then((r) => {
-        if (!Array.isArray(r)) return;
-        if (r.length > 0) {
-          remote.current = 'ok';
-          setList(r);
-          store.set('c_' + name, r);
-        } else {
-          remote.current = 'empty';
-          
-          if (!list || list.length === 0) {
-            setList(seed);
-          }
-        }
-      })
-      .catch((err) => {
-        console.warn(`Backend server unreachable for ${name}. Using local seed data.`, err);
-        
-        setList((prev) => (prev && prev.length > 0 ? prev : seed));
-      });
+    contentApi.list(name).then(async (r) => {
+      if (!Array.isArray(r)) return; // server unreachable: keep cached/seed data
+      if (r.length > 0) {
+        setList(r);
+        store.set('c_' + name, r);
+      } else if (adminKey.get()) {
+        // server is empty and the owner is logged in: upload what this browser has
+        const local = store.get('c_' + name, []);
+        for (const item of local) await contentApi.put(name, item);
+      }
+    });
   }, [name]);
 
-  const save = (l) => {
-    setList(l);
-    store.set('c_' + name, l);
+  const warn = () => alert('Not saved to the server. Log in again as owner and retry.');
+
+  const put = async (item) => {
+    const next = list.some((x) => x.id === item.id)
+      ? list.map((x) => (x.id === item.id ? item : x))
+      : [...list, item];
+    setList(next);
+    store.set('c_' + name, next);
+    if ((await contentApi.put(name, item)) !== true) warn();
   };
 
-  
-  const flush = (skipId) => {
-    if (remote.current !== 'empty') return;
-    remote.current = 'ok';
-    list
-      .filter((x) => x.id !== skipId)
-      .reduce((p, x) => p.then(() => contentApi.put(name, x)), Promise.resolve());
-  };
-
-  const put = (item) => {
-    flush(item.id);
-    save(
-      list.some((x) => x.id === item.id)
-        ? list.map((x) => (x.id === item.id ? item : x))
-        : [...list, item]
-    );
-    contentApi.put(name, item);
-  };
-
-  const del = (id) => {
-    flush(id);
-    save(list.filter((x) => x.id !== id));
-    contentApi.remove(name, id);
+  const del = async (id) => {
+    const next = list.filter((x) => x.id !== id);
+    setList(next);
+    store.set('c_' + name, next);
+    if ((await contentApi.remove(name, id)) !== true) warn();
   };
 
   return [list, put, del];

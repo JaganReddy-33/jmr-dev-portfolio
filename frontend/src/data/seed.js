@@ -1,8 +1,118 @@
 
 // Default content shown on first load. The owner can edit/delete everything from the UI.
 export const SEED = {
-  skills: [],
-  experience: [],
-  projects: [],
-  ach: [],
+  skills: [
+    {
+      id: "muv6wsy1zuuk",
+      head: "Java & Backend",
+      items: ["Core Java", "OOPs", "Collections", "Multithreading", "JDBC", "Servlets", "REST APIs", "Spring Boot"]
+    },
+    {
+      id: "muv6y16attrr",
+      head: "Frontend",
+      items: ["React", "Redux", "JavaScript", "HTML5", "CSS3", "Tailwind", "Bootstrap"]
+    },
+    {
+      id: "muv6ys4akqql",
+      head: "Data & Server",
+      items: ["MySQL", "SQL", "MongoDB", "Node.js", "Express"]
+    },
+    {
+      id: "muv6zqngy5fz",
+      head: "Tools & Testing",
+      items: ["Git", "GitHub", "Postman", "VS Code", "Unit Testing", "Integration Testing"]
+    }
+  ],
+  experience: [
+    {
+      id: "muv71zdarxbu",
+      role: "Web Development Intern",
+      org: "Algonive (Remote)",
+      period: "Jul 2025 – Oct 2025",
+      pts: "Contributed to 5+ web apps (e-commerce, chat, task management) on the MERN stack.|Tested REST endpoints with Postman; verified responsive UI.|Extended modular Node.js/Express backend code."
+    },
+    {
+      id: "muv7315im0xx",
+      role: "Web Development Intern",
+      org: "Amdox Technologies (Remote)",
+      period: "Nov 2025 – Feb 2026",
+      pts: "Built features for a Job Listing Portal with the MERN stack in an existing codebase.|Wrote unit and integration tests; used Postman for API testing.|Followed codebase conventions and debugged issues."
+    }
+  ],
+  projects: [
+    {
+      id: "muv75a1dt4gr",
+      title: "Seatline: High-Concurrency Atomic Booking Engine",
+      desc: "• Engineered a high-concurrency booking engine using Node.js, Express.js, React.js, Socket.IO, and MongoDB to eliminate double-booking under heavy traffic.\n• Implemented atomic database operations ($bit, findOneAndUpdate) to handle simultaneous seat reservation requests safely without race conditions.\n• Built live real-time seat availability updates using Socket.IO for connected clients.\n• Conducted stress/load testing simulating 20+ concurrent reservation requests on a single seat to empirically prove zero overselling.",
+      tech: "MongoDB,Express,React,Node.js",
+      code: "https://github.com/JaganReddy-33/Seatline_Atomic-Booking-Engine",
+      live: "",
+      img: ""
+    },
+    {
+      id: "muv77kbfzhe5",
+      title: "100+ Days Full Stack Challenge",
+      desc: "Daily Core Java, JDBC, MySQL, REST, React and SQL exercises, documented publicly.",
+      tech: "Java,JDBC,MySQL,React",
+      code: "https://github.com/JaganReddy-33/100_Days_Full_Stack_Dev_Challenge",
+      live: "",
+      img: ""
+    }
+  ],
+  ach: [
+    {
+      id: "muv7j0jkqlbx",
+      title: "Full Stack Developer Bootcamp - Master Frontend to Backend",
+      org: "GeeksforGeeks",
+      date: "Aug / 2025",
+      type: "Certificate",
+      link: "https://media.geeksforgeeks.org/courses/certificates/c009f66fb38524116951550ba39136e1.pdf",
+      img: ""
+    },
+    {
+      id: "muv7mbjxgbp2",
+      title: "Algonive web developer Intern completion certificate",
+      org: "ALGONIVE",
+      date: "Oct / 2025",
+      type: "Certificate",
+      link: "https://drive.google.com/file/d/1UfPTBeOVD0bxZKawygdI66edvLLtneGK/view?usp=sharing",
+      img: ""
+    },
+    {
+      id: "muv7ofs4izum",
+      title: " Frontend Developer (React) Certificate",
+      org: "HackerRank",
+      date: "Jan / 2026",
+      type: "Certificate",
+      link: "https://www.hackerrank.com/certificates/54165a775281",
+      img: ""
+    },
+    {
+      id: "muv7qmd20g1z",
+      title: "Web Development Internship Certificate",
+      org: "Amdox Technologies",
+      date: "Feb / 2026",
+      type: "Certificate",
+      link: "",
+      img: ""
+    },
+    {
+      id: "muv7t1g0ab3u",
+      title: "Software Engineer Intern Certificate",
+      org: "HackerRank",
+      date: "Oct / 2026",
+      type: "Certificate",
+      link: "https://www.hackerrank.com/certificates/7e6fbc9e7d5c",
+      img: ""
+    },
+    {
+      id: "muv7uhumtzgp",
+      title: "Software Engineer Certificate",
+      org: "HackerRank",
+      date: "Oct / 2026",
+      type: "Certificate",
+      link: "https://www.hackerrank.com/certificates/dacaf2ad0cf8",
+      img: ""
+    }
+  ]
 };
